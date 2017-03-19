@@ -1,0 +1,110 @@
+1. Arrancar mongodb
+
+docker-compose up
+
+2. Crear db y collección user
+
+docker exec -it my-mongodb mongo
+use development
+db.createCollection('user')
+
+3. Insertar registros
+
+db.user.insert({
+    "_id": "1",
+    "name": "admin",
+    "surname": "admin",
+    "gender": "male",
+    "roles": ["ROLE_ADMIN"]
+});
+
+db.user.insert({
+    "_id": "2",
+    "name": "Jorge",
+    "surname": "Hernández Ramírez",
+    "gender": "male",
+    "roles": ["ROLE_ADMIN"],
+    "teams": [{"name": "UD. Las Palmas","sport": "Football"},{"name": "Real Madrid","sport": "Football"},{"name": "McLaren","sport": "F1"}]
+});
+
+db.user.insert({
+    "_id": "3",
+    "name": "Jose",
+    "gender": "male",
+    "surname": "Hernández Ramírez",
+    "roles": ["ROLE_USER"],
+    "teams": [{"name": "UD. Las Palmas","sport": "Football"},{"name": "Magnus Carlsen","sport": "Chess"}]
+});
+
+db.user.insert({
+    "_id": "4",
+    "name": "Raul",
+    "surname": "González Blanco",
+    "gender": "male",
+    "roles": ["ROLE_USER"],
+    "teams": [{"name": "Real Madrid","sport": "Football"},{"name": "Real Madrid","sport": "Basketball"}]
+});
+
+db.user.insert({
+    "_id": "5",
+    "name": "Constanza",
+    "surname": "Ramírez Rodríguez",
+    "gender": "female",
+    "roles": ["ROLE_USER"],
+    "teams": [{"name": "UD. Las Palmas", "sport": "Football"}]
+});
+
+ -------------------
+
+3. Otros
+
+- Para entrar con el bash en el contenedor docker
+docker exec -it my-mongodb bash
+
+- Querys
+
+    -- Obtener todos los registros
+    db.user.find();
+    -- Nombre que sean de sexo masculino
+     db.user.find({gender: 'male'}, {_id: 0, surname: 0, gender:0, roles:0, teams:0});
+    -- Nombre de aquellos que sean de la UD. Las Palmas
+    db.user.find({'teams.name': 'UD. Las Palmas'}, {_id: 0, surname: 0, gender:0, roles:0, teams:0});
+    db.user.find({'teams.name': {$in: ['UD. Las Palmas']}}, {_id: 0, surname: 0, gender:0, roles:0, teams:0});
+    -- Nombre de aquellos que sean de la union deportiva y de Magnus Carlen
+    db.user.find({'teams.name': {$all: ['UD. Las Palmas', 'Magnus Carlsen']}}, {_id: 0, surname: 0, gender:0, roles:0, teams:0});
+    db.user.find({'teams.name': {$in: ['UD. Las Palmas']}, 'teams.name': {$in: ['Magnus Carlsen']}}, {_id: 0, surname: 0, gender:0, roles:0, teams:0});
+    -- Obtener numero de mujeres y hombres hay en el sistema
+    db.user.aggregate({
+       $group: {_id: "$gender", count : {$sum : 1}}
+    })
+    -- Obtener numero de usuarios que tienen rol admin
+    db.user.find({
+       roles: 'ROLE_ADMIN'
+    }).count()
+    -- Obtener número de veces que el Real Madrid forma parte de un equipo
+    db.user.aggregate({
+        $unwind: "$teams"
+    },
+    {
+        $match: {"teams.name": "Real Madrid"},
+    },
+    {
+        $group: {_id: null, count: {$sum: 1}}
+    })
+
+    -> Error porque no estamos haciendo un unwind
+    db.user.aggregate(
+    {
+        $match: {"teams.name": "Real Madrid"},
+    },
+    {
+        $group: {_id: null, count: {$sum: 1}}
+    })
+
+    db.user.aggregate({
+        $unwind: "$teams"
+    },
+    {
+        $match: {"teams.name": "Real Madrid"},
+    });
+

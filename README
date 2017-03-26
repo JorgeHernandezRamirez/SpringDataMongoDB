@@ -108,3 +108,90 @@ docker exec -it my-mongodb bash
         $match: {"teams.name": "Real Madrid"},
     });
 
+
+
+Otros
+
+docker exec -it my-mongodb bash //Para entrar en el contenedor docker utilizando el bash
+
+4. Lookup
+
+db.createCollection('account')
+
+db.account.insert({
+    "_id": "1",
+    "userId": "1",
+    "account": "ES9121000418450200051332"
+});
+
+db.account.insert({
+    "_id": "2",
+    "userId": "1",
+    "account": "ES1800491500042710151321"
+});
+
+db.account.insert({
+    "_id": "3",
+    "userId": "2",
+    "account": "ES3320805801143040000499"
+});
+
+#Left join
+db.user.aggregate([
+    {
+      $lookup:
+        {
+          from: "account",
+          localField: "_id",
+          foreignField: "userId",
+          as: "accounts"
+        }
+   },
+   {
+      $project:
+        {_id: 0, surname: 0, gender: 0, roles: 0}
+   }
+]);
+
+#Inner Join
+db.user.aggregate([
+    {
+      $lookup:
+        {
+          from: "account",
+          localField: "_id",
+          foreignField: "userId",
+          as: "accounts"
+        }
+   },
+   {
+      $match: {accounts: {$ne: []}}
+   },
+   {
+      $project:
+        {_id: 0, surname: 0, gender: 0, roles: 0, teams: 0}
+   }
+]);
+
+#Obtener las cuentas con los nombre de sus dueños
+db.user.aggregate([
+    {
+      $lookup:
+        {
+          from: "account",
+          localField: "_id",
+          foreignField: "userId",
+          as: "accounts"
+        }
+   },
+   {
+      $unwind: "$accounts"
+   },
+   {
+      $match: {accounts: {$ne: []}}
+   },
+   {
+      $project:
+        {_id: 0, surname: 0, gender: 0, roles: 0, userId: 0, teams: 0}
+   }
+]);

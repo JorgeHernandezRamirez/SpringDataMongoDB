@@ -48,7 +48,7 @@ public class MongoDBTest {
 
     @Test
     public void shouldReturnAllUsersFromUsername(){
-        userRepository.findByUsername("jorge").forEach(userEntity -> {
+        userRepository.findByName("Jorge").forEach(userEntity -> {
             LOGGER.info("{}", userEntity);
         });
     }

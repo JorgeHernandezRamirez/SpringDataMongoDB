@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface UserRepository extends MongoRepository<UserEntity, String> {
 
-    List<UserEntity> findByUsername(String username);
+    List<UserEntity> findByName(String name);
 
     @Query("{'teams.name': ?0}")
     List<UserEntity> findByTeamname(String teamName);
